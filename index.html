@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ToolRent Pro — Учёт аренды</title>
+    <style>
+        :root{--bg:#0f1117;--bg-card:#1a1d27;--bg-card-hover:#222633;--bg-input:#151720;--border:#2a2d3a;--primary:#6366f1;--primary-light:#818cf8;--success:#22c55e;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--text:#e4e4e7;--text-secondary:#a1a1aa;--text-muted:#71717a;--r:12px;--rlg:16px;--rxl:20px;--sh:0 4px 24px rgba(0,0,0,.3);--tr:all .25s ease}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        .app{display:flex;min-height:100vh;position:relative}
+        .sidebar{width:260px;background:var(--bg-card);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s}
+        .logo{display:flex;align-items:center;gap:10px;padding:6px 10px;margin-bottom:24px}
+        .logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--info));border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:18px}
+        .logo-text{font-size:18px;font-weight:800;background:linear-gradient(90deg,var(--primary-light),var(--info));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:0 10px;margin:16px 0 6px}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);cursor:pointer;color:var(--text-secondary);font-size:13px;font-weight:500;margin-bottom:2px;position:relative}
+        .nav-item:hover{background:var(--bg-card-hover);color:var(--text)}
+        .nav-item.active{background:rgba(99,102,241,.15);color:var(--primary-light)}
+        .nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--primary);border-radius:0 3px 3px 0}
+        .nav-icon{font-size:16px;width:22px;text-align:center}
+        .nav-badge{margin-left:auto;background:var(--primary);color:#fff;font-size:10px;padding:1px 6px;border-radius:8px}
+        .sidebar-foot{margin-top:auto;padding:12px 10px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--text-muted)}
+        .mobile-btn{display:none;position:fixed;top:10px;left:10px;z-index:200;height:44px;padding:0 12px 0 14px;border-radius:10px;background:var(--bg-card);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;align-items:center;gap:6px;box-shadow:var(--sh)}
+        .mobile-btn:active{transform:scale(.96)}
+        .main{flex:1;margin-left:260px;padding:24px;min-height:100vh}
+        .page{display:none;animation:fadeIn .3s ease}.page.active{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+        .pt{font-size:24px;font-weight:800;letter-spacing:-.5px}
+        .ps{color:var(--text-secondary);font-size:12px;margin-top:2px}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;min-height:40px;transition:var(--tr)}
+        .btn-primary{background:linear-gradient(135deg,var(--primary),#4f46e5);color:#fff;box-shadow:0 4px 14px rgba(99,102,241,.3)}
+        .btn-print{background:linear-gradient(135deg,#ea580c,#c2410c);color:#fff}
+        .btn-secondary{background:var(--bg-card-hover);color:var(--text);border:1px solid var(--border)}
+        .btn-success{background:var(--success);color:#fff}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-sm{padding:5px 10px;font-size:11px;min-height:32px;border-radius:6px}
+        .btn:active{transform:scale(.98)}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+        .st{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rlg);padding:14px;transition:var(--tr);position:relative}
+        .st:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+        .st-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:6px}
+        .st-val{font-size:22px;font-weight:800;letter-spacing:-1px}
+        .st-lab{font-size:10px;color:var(--text-secondary)}
+        .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+        .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;transition:var(--tr)}
+        .card:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+        .card-img{height:120px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;background:var(--bg-card-hover)}
+        .card-body{padding:12px}
+        .card-head{display:flex;justify-content:space-between;margin-bottom:4px}
+        .card-name{font-size:14px;font-weight:700}.card-cat{font-size:10px;color:var(--text-muted)}
+        .tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px}
+        .tag-ok{background:rgba(34,197,94,.1);color:var(--success)}.tag-warn{background:rgba(245,158,11,.1);color:var(--warning)}
+        .tag-err{background:rgba(239,68,68,.1);color:var(--danger)}
+        .card-desc{font-size:11px;color:var(--text-secondary);margin:6px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .card-foot{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border);gap:4px;flex-wrap:wrap}
+        .price{font-size:14px;font-weight:800;color:var(--primary-light)}.price span{font-size:9px;color:var(--text-muted)}
+        .tbl-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden}
+        .tbl-scroll{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;min-width:700px}
+        th,td{padding:8px 10px;text-align:left;font-size:12px}
+        th{font-weight:600;color:var(--text-muted);font-size:9px;text-transform:uppercase;background:rgba(0,0,0,.2);border-bottom:1px solid var(--border)}
+        td{border-bottom:1px solid var(--border);color:var(--text-secondary)}
+        tr:hover td{background:rgba(99,102,241,.02)}
+        .avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--info));display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0}
+        .sn{font-family:monospace;background:rgba(255,255,255,.05);padding:1px 4px;border-radius:3px;font-size:9px}
+        .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center;padding:12px}
+        .modal-ov.active{display:flex}
+        .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rxl);width:100%;max-width:600px;max-height:85vh;overflow-y:auto;animation:modalIn .25s ease}
+        @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .m-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-card);z-index:2}
+        .m-title{font-size:16px;font-weight:700}
+        .m-close{width:30px;height:30px;border:none;background:var(--bg-card-hover);color:var(--text-secondary);cursor:pointer;border-radius:6px;font-size:14px}
+        .m-body{padding:16px}
+        .fg{margin-bottom:12px}
+        .fl{display:block;font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+        .fi,.fs,.ft{width:100%;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;min-height:38px}
+        .fi:focus,.fs:focus,.ft:focus{outline:none;border-color:var(--primary)}
+        .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .m-foot{display:flex;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border)}
+        .search-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+        .sw{position:relative;flex:1;min-width:200px}
+        .sw::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none}
+        .si{width:100%;padding:8px 10px 8px 30px;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;min-height:38px}
+        .si:focus{outline:none;border-color:var(--primary)}
+        .f-tabs{display:flex;gap:3px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:2px;overflow-x:auto}
+        .ftab{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;color:var(--text-secondary);border:none;background:none;white-space:nowrap}
+        .ftab.active{background:var(--primary);color:#fff}
+        .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px}
+        .grid3 .act-feed{grid-column:1/-1}
+        .box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rlg);padding:14px}
+        .b-title{font-size:14px;font-weight:700;margin-bottom:10px}
+        .cl{max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+        .ci{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;transition:var(--tr);border:1px solid transparent}
+        .ci:hover{background:var(--bg-card-hover);border-color:var(--border)}
+        .ci-act{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+        .c-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(99,102,241,.1);flex-shrink:0}
+        .c-info{flex:1;min-width:0}
+        .c-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .c-sub{font-size:10px;color:var(--text-muted)}
+        .empty{text-align:center;padding:30px 10px;color:var(--text-muted)}
+        .toast-box{position:fixed;top:14px;right:14px;z-index:2000;display:flex;flex-direction:column;gap:6px}
+        .toast{padding:8px 12px;border-radius:8px;font-size:12px;font-weight:500;color:#fff;box-shadow:var(--sh);animation:tIn .3s,tOut .3s 2.7s forwards}
+        @keyframes tIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}@keyframes tOut{to{opacity:0;transform:translateX(40px)}}
+        .t-ok{background:var(--success)}.t-err{background:var(--danger)}.t-info{background:var(--info)}
+        .conf{padding:20px;text-align:center}
+        .conf-i{font-size:32px;margin-bottom:8px}
+        .conf-t{font-size:15px;font-weight:600;margin-bottom:12px}
+        .conf-a{display:flex;gap:8px;justify-content:center}
+        .settings-btn{margin-top:auto;padding:8px;border:1px dashed var(--border);border-radius:8px;text-align:center;cursor:pointer;color:var(--text-muted);font-size:11px}
+        .settings-btn:hover{background:var(--bg-card-hover)}
+        @media(max-width:1024px){.grid3{grid-template-columns:1fr 1fr}}
+        @media(max-width:768px){
+            .mobile-btn{display:flex}.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+            .main{margin-left:0;padding:16px;padding-top:68px}.pt{font-size:20px}
+            .stats{grid-template-columns:1fr 1fr;gap:8px}.st{padding:10px}.st-val{font-size:18px}
+            .cards{grid-template-columns:1fr}.grid3{grid-template-columns:1fr;gap:10px}
+            .frow{grid-template-columns:1fr}.modal{max-width:100%;max-height:95vh;margin:8px}
+            .m-foot{flex-direction:column;gap:8px;align-items:stretch}.m-foot .btn{width:100%}
+            .search-bar{flex-direction:column}.sw{min-width:0}
+            .toast-box{left:12px;right:12px}.toast{width:100%}
+        }
+        @media(max-width:360px){.stats{grid-template-columns:1fr}.mobile-btn{height:38px;font-size:12px;padding:0 10px}}
+    </style>
+</head>
+<body>
+<button class="mobile-btn" onclick="toggleSidebar()" aria-label="Меню"><span>☰</span><span>Меню</span></button>
+<div class="app">
+    <aside class="sidebar" id="sidebar">
+        <div class="logo"><div class="logo-icon">🔧</div><div class="logo-text">ToolRent</div></div>
+        <div class="nav-sec">Главное</div>
+        <div class="nav-item active" data-page="dashboard" onclick="go('dashboard')"><span class="nav-icon">📊</span>Дашборд</div>
+        <div class="nav-item" data-page="tools" onclick="go('tools')"><span class="nav-icon">🛠</span>Инструменты<span class="nav-badge" id="cTools">0</span></div>
+        <div class="nav-item" data-page="rentals" onclick="go('rentals')"><span class="nav-icon">📋</span>Аренды<span class="nav-badge" id="cRentals" style="background:var(--warning)">0</span></div>
+        <div class="nav-sec">Документы</div>
+        <div class="nav-item" data-page="contracts" onclick="go('contracts')"><span class="nav-icon">📄</span>Договоры</div>
+        <div class="nav-sec">Справочники</div>
+        <div class="nav-item" data-page="clients" onclick="go('clients')"><span class="nav-icon">👥</span>Клиенты</div>
+        <div class="nav-item" data-page="analytics" onclick="go('analytics')"><span class="nav-icon">📈</span>Аналитика</div>
+        <div class="settings-btn" onclick="openSettings()">⚙️ Резервное копирование</div>
+        <div class="sidebar-foot">ToolRent Pro v9.1 © 2025</div>
+    </aside>
+    <main class="main">
+        <div class="page active" id="p-dashboard">
+            <div class="ph"><div><h1 class="pt">Дашборд</h1><div class="ps">Текущее состояние парка</div></div><button class="btn btn-primary" onclick="openRentModal()">➕ Аренда</button></div>
+            <div class="box" style="margin-bottom:16px"><div class="b-title">📦 Сейчас в аренде</div><div class="cl" id="lRented"></div></div>
+            <div class="stats" id="dStats"></div>
+            <div class="grid3">
+                <div class="box"><div class="b-title">✅ Свободные</div><div class="cl" id="lAvail"></div></div>
+                <div class="box"><div class="b-title">🕐 Последние</div><div id="lRecent"></div></div>
+                <div class="box"><div class="b-title">📌 Активность</div><div id="lActivity"></div></div>
+            </div>
+        </div>
+        <div class="page" id="p-tools">
+            <div class="ph"><div><h1 class="pt">Инструменты</h1><div class="ps">Каталог</div></div><button class="btn btn-primary" onclick="openToolModal()">➕ Добавить</button></div>
+            <div class="search-bar"><div class="sw"><input class="si" id="sTool" placeholder="Поиск..." oninput="rTools()"></div><div class="f-tabs"><button class="ftab active" onclick="fTools('all',this)">Все</button><button class="ftab" onclick="fTools('available',this)">✅ Свободны</button><button class="ftab" onclick="fTools('rented',this)">📦 В аренде</button><button class="ftab" onclick="fTools('overdue',this)">🔴 Просрочены</button></div></div>
+            <div class="cards" id="gTools"></div>
+        </div>
+        <div class="page" id="p-rentals">
+            <div class="ph"><div><h1 class="pt">Аренды</h1><div class="ps">Учёт договоров</div></div><button class="btn btn-primary" onclick="openRentModal()">➕ Аренда</button></div>
+            <div class="search-bar"><div class="sw"><input class="si" id="sRent" placeholder="Поиск по клиенту..." oninput="rRentals()"></div><div class="f-tabs"><button class="ftab active" onclick="fRentals('all',this)">Все</button><button class="ftab" onclick="fRentals('active',this)">Активные</button><button class="ftab" onclick="fRentals('completed',this)">Закрытые</button><button class="ftab" onclick="fRentals('overdue',this)">Просрочены</button></div></div>
+            <div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>№</th><th>Клиент</th><th>Инструменты</th><th>Даты</th><th>Стоимость</th><th>Статус</th><th>Действия</th></tr></thead><tbody id="tRentals"></tbody></table></div></div>
+        </div>
+        <div class="page" id="p-contracts">
+            <div class="ph"><div><h1 class="pt">Договоры</h1><div class="ps">Формирование и печать</div></div></div>
+            <div class="search-bar"><div class="sw"><input class="si" id="sCont" placeholder="Поиск..." oninput="rConts()"></div></div>
+            <div class="box" id="lContracts"></div>
+        </div>
+        <div class="page" id="p-clients">
+            <div class="ph"><div><h1 class="pt">Клиенты</h1><div class="ps">База данных</div></div><button class="btn btn-primary" onclick="openClientModal()">➕ Добавить</button></div>
+            <div class="search-bar"><div class="sw"><input class="si" id="sClient" placeholder="Поиск..." oninput="rClients()"></div></div>
+            <div class="tbl-wrap"><div class="tbl-scroll"><table><thead><tr><th>Клиент</th><th>Паспорт</th><th>Телефон</th><th>Email</th><th>Аренды</th><th>Действия</th></tr></thead><tbody id="tClients"></tbody></table></div></div>
+        </div>
+        <div class="page" id="p-analytics">
+            <div class="ph"><div><h1 class="pt">Аналитика</h1><div class="ps">Статистика</div></div></div>
+            <div class="stats" id="aStats"></div>
+            <div class="grid3"><div class="box"><div class="b-title">🏆 Популярные</div><div id="aPop"></div></div><div class="box"><div class="b-title">💰 Доход</div><div id="aCat"></div></div></div>
+        </div>
+    </main>
+</div>
+<div class="modal-ov" id="mOv" onclick="if(event.target===this)closeModal()"><div class="modal" id="mCnt"></div></div>
+<div class="modal-ov" id="cOv" onclick="if(event.target===this)closeConfirm()"><div class="modal" id="cCnt"></div></div>
+<div class="toast-box" id="tBox"></div>
+
+<script>
+const CATS={power:{n:'Электро',i:'⚡'},hand:{n:'Ручной',i:'🔨'},measure:{n:'Измер.',i:'📏'},garden:{n:'Садовый',i:'🌿'},auto:{n:'Авто',i:'🔧'},battery:{n:'Аккум.',i:'🔋'}};
+const SK='tr_v9_1';let D={tools:[],clients:[],rentals:[],acts:[],filters:{t:'all',r:'all'}};
+const gid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const fd=i=>i?new Date(i).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+const ft=i=>i?new Date(i).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'';
+const fdt=i=>i?fd(i)+' '+ft(i):'';
+const fdtS=i=>{if(!i)return'';const d=new Date(i);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})};
+const ddiff=(a,b)=>Math.ceil((new Date(b)-new Date(a))/864e5);
+const cDays=h=>{const f=Math.floor(h/24),r=h%24;return Math.max(1,f+(r>0.5?1:0))};
+
+function load(){try{const s=localStorage.getItem(SK);if(s)D={...D,...JSON.parse(s)}}catch(e){}}
+function save(){try{localStorage.setItem(SK,JSON.stringify(D))}catch(e){}}
+function checkOv(){const n=new Date();let c=false;D.rentals.forEach(r=>{r.items.forEach(it=>{if(!it.ret&&new Date(it.end)<n){if(r.st==='act'){r.st='ovr';c=true}const t=D.tools.find(x=>x.id===it.id2);if(t&&(t.st==='rent'||t.st==='av')){t.st='ovr';c=true}}})});if(c)save()}
+
+function toast(m,t='info'){const b=document.getElementById('tBox');const ic={ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'};const d=document.createElement('div');d.className=`toast t-${t==='ok'?'ok':t==='err'?'err':'info'}`;d.innerHTML=`${ic[t]||''} ${m}`;b.appendChild(d);setTimeout(()=>d.remove(),3000)}
+function conf(t,txt,ok,ic='⚠️'){document.getElementById('cCnt').innerHTML=`<div class="m-head"><div class="m-title">${t}</div><button class="m-close" onclick="closeConfirm()">✕</button></div><div class="conf"><div class="conf-i">${ic}</div><div class="conf-t">${txt}</div><div class="conf-a"><button class="btn btn-secondary" onclick="closeConfirm()">Отмена</button><button class="btn btn-danger" id="cfOk">Да</button></div></div>`;document.getElementById('cOv').classList.add('active');document.getElementById('cfOk').onclick=()=>{closeConfirm();ok()}}
+function closeConfirm(){document.getElementById('cOv').classList.remove('active')}
+function closeModal(){document.getElementById('mOv').classList.remove('active')}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.getElementById('p-'+p).classList.add('active');const n=document.querySelector(`.nav-item[data-page="${p}"]`);if(n)n.classList.add('active');render(p);document.getElementById('sidebar').classList.remove('open')}
+function curPage(){const a=document.querySelector('.nav-item.active');return a?a.dataset.page:'dashboard'}
+function render(p){checkOv();({dashboard:rDash,tools:rTools,rentals:rRentals,clients:rClients,contracts:rConts,analytics:rAnal})[p]?.();upC()}
+function upC(){const t=document.getElementById('cTools'),r=document.getElementById('cRentals');if(t)t.textContent=D.tools.length;if(r)r.textContent=D.rentals.filter(x=>x.st!=='com').length}
+
+/* ===== DASHBOARD ===== */
+function rDash(){
+    const act=D.rentals.filter(r=>r.st==='act').length,ovr=D.rentals.filter(r=>r.st==='ovr').length;
+    const compRev=D.rentals.filter(r=>r.st==='com').reduce((s,r)=>s+r.tot,0),actRev=D.rentals.filter(r=>r.st!=='com').reduce((s,r)=>s+r.tot,0);
+    document.getElementById('dStats').innerHTML=`<div class="st"><div class="st-icon">📋</div><div class="st-val" style="color:var(--warning)">${act}</div><div class="st-lab">Активных</div></div><div class="st"><div class="st-icon">⚠️</div><div class="st-val" style="color:var(--danger)">${ovr}</div><div class="st-lab">Просрочено</div></div><div class="st"><div class="st-icon">✅</div><div class="st-val" style="color:var(--info)">${compRev.toLocaleString('ru')} ₽</div><div class="st-lab">Закрыто</div></div><div class="st"><div class="st-icon">💰</div><div class="st-val" style="color:var(--primary-light)">${(compRev+actRev).toLocaleString('ru')} ₽</div><div class="st-lab">Общий доход</div></div>`;
+
+    const ri=[];D.rentals.filter(r=>r.st!=='com').forEach(r=>{r.items.filter(x=>!x.ret).forEach(x=>{const t=D.tools.find(z=>z.id===x.id2);const c=D.clients.find(z=>z.id===r.cid);if(t)ri.push({t,c,x,r})})});
+    document.getElementById('lRented').innerHTML=ri.length?ri.map(i=>{const l=ddiff(new Date(),i.x.end);const s=l>0?`Ост. ${l}д`:`<span class="tag tag-err">⚠ ${ddiff(i.x.end,new Date())}д</span>`;return `<div class="ci"><div class="c-icon">${i.t.i}</div><div class="c-info"><div class="c-title">${i.t.n}</div><div class="c-sub"><span class="sn">${i.t.inv||'Б/Н'}</span> · 👤 ${i.c?.n||'—'}</div><div class="c-sub">${fdtS(i.x.sta)} → ${fdtS(i.x.end)}</div></div><span class="tag tag-warn">${s}</span><div class="ci-act"><button class="btn btn-sm btn-success" onclick="ret('${i.r.id}','${i.x.id}')">✓</button></div></div>`}).join(''):'<div class="empty">📦 Нет в аренде</div>';
+
+    const av=D.tools.filter(t=>t.st==='av');
+    document.getElementById('lAvail').innerHTML=av.length?av.map(t=>`<div class="ci"><div class="c-icon">${t.i}</div><div class="c-info"><div class="c-title">${t.n}</div><div class="c-sub"><span class="sn">${t.inv||'Б/Н'}</span> · ${t.p?t.p+'₽/сут':'Бесплатно'}</div></div><div class="ci-act"><button class="btn btn-sm btn-primary" onclick="openRentModal('${t.id}')">📋</button></div></div>`).join(''):'<div class="empty">✅ Нет свободных</div>';
+
+    const rec=[...D.rentals].sort((a,b)=>new Date(b.cr)-new Date(a.cr)).slice(0,4);
+    document.getElementById('lRecent').innerHTML=rec.length?rec.map(r=>{const c=D.clients.find(z=>z.id===r.cid);if(!c)return'';const ts=r.items.map(x=>{const t=D.tools.find(z=>z.id===x.id2);return t?`<span class="sn">${t.i} ${t.n.substring(0,12)}</span>`:''}).join(' ');return `<div class="ci"><div class="c-icon">📄</div><div class="c-info"><div class="c-title">${ts}</div><div class="c-sub">${c.n}</div><div class="c-sub">${fdt(r.cr)}</div></div><span class="tag ${r.st==='act'?'tag-warn':'tag-ok'}">${r.st==='act'?'Ожидает':'Закрыт'}</span></div>`}).join(''):'<div class="empty">📭 Нет аренд</div>';
+
+    document.getElementById('lActivity').innerHTML=D.acts.length?D.acts.slice(0,6).map(a=>{const dc={r:'var(--success)',v:'var(--info)',o:'var(--danger)'}[a.t]||'var(--info)';return `<div class="ci"><div style="width:6px;height:6px;border-radius:50%;background:${dc};margin-top:4px"></div><div><div style="font-size:12px;color:var(--text-secondary)">${a.tx}</div><div style="font-size:10px;color:var(--text-muted)">${a.tm}</div></div></div>`}).join(''):'<div class="empty">📝 Пусто</div>';
+}
+
+/* ===== TOOLS ===== */
+function rTools(){const q=(document.getElementById('sTool')?.value||'').toLowerCase(),f=D.filters.t;const tools=D.tools.filter(t=>(t.n.toLowerCase().includes(q)||t.inv.toLowerCase().includes(q))&&(f==='all'||t.st===f));const g=document.getElementById('gTools');if(!tools.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1">🔍 Не найдено<button class="btn btn-primary" onclick="openToolModal()">➕ Добавить</button></div>`;return}g.innerHTML=tools.map(t=>{const cat=CATS[t.cat]||{n:'Другое',i:'🔧'};const st={av:'Свободен',rent:'В аренде',ovr:'Просрочен'}[t.st];return `<div class="card"><div class="card-img">${t.i}</div><div class="card-body"><div class="card-head"><div><div class="card-name">${t.n}</div><div class="card-cat">${cat.i} ${cat.n}</div></div><span class="tag ${t.st==='av'?'tag-ok':t.st==='rent'?'tag-warn':'tag-err'}">${st}</span></div><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">SN: <strong>${t.inv||'Б/Н'}</strong></div><div class="card-desc">${t.d||''}</div><div class="card-foot"><div class="price">${t.p?t.p+' ₽ <span>/день</span>':'Бесплатно'}</div><div style="display:flex;gap:4px">${t.st==='av'?`<button class="btn btn-sm btn-primary" onclick="openRentModal('${t.id}')">📋</button>`:''}<button class="btn btn-sm btn-secondary" onclick="openToolModal('${t.id}')">✏️</button><button class="btn btn-sm btn-secondary" style="color:var(--danger)" onclick="delT('${t.id}')">🗑</button></div></div></div>`}).join('')}
+function fTools(f,btn){D.filters.t=f;btn.parentElement.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');rTools()}
+
+/* ===== RENTALS ===== */
+function rRentals(){const q=(document.getElementById('sRent')?.value||'').toLowerCase(),f=D.filters.r;let list=D.rentals.filter(r=>{const c=D.clients.find(z=>z.id===r.cid);const m=c?c.n.toLowerCase().includes(q)||c.ph.includes(q):false;return m&&(f==='all'||r.st===f)}).sort((a,b)=>new Date(b.cr)-new Date(a.cr));const tb=document.getElementById('tRentals');if(!list.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty">📭 Нет аренд</div></td></tr>`;return}tb.innerHTML=list.map(r=>{const c=D.clients.find(z=>z.id===r.cid);if(!c)return'';const stTxt={act:'Активна',ovr:'Просрочена',com:'Завершена'}[r.st];const its=r.items.map(x=>{const t=D.tools.find(z=>z.id===x.id2);if(!t)return'';const ret=x.ret?`<br><span style="color:var(--success);font-size:9px">${x.tot.toLocaleString('ru')} ₽</span>`:'<br><span style="color:var(--warning);font-size:9px">Ожидает</span>';return `<span class="sn">${t.i} ${t.n.substring(0,14)} ${t.inv?`[${t.inv}]`:''}</span>${ret}`}).join(' ');const retCnt=r.items.filter(x=>x.ret).length;const totCnt=r.items.length;const costD=r.st==='com'?`<span style="font-weight:700">${r.tot.toLocaleString('ru')} ₽</span>`:r.items.some(x=>x.ret)?`<span style="font-weight:700">${r.items.filter(x=>x.ret).reduce((s,x)=>s+x.tot,0).toLocaleString('ru')} ₽</span><br><span style="color:var(--warning);font-size:9px">${retCnt}/${totCnt} возвр.</span>`:`<span style="color:var(--warning);font-size:10px">Ожидает</span>`;return `<tr class="${r.st==='ovr'?'overdue-row':''}"><td style="font-size:10px">#${r.id.slice(-6)}</td><td><div style="display:flex;align-items:center;gap:6px"><div class="avatar">${c.n.charAt(0)}</div><div><div style="font-weight:600;color:var(--text)">${c.n}</div><div style="font-size:9px;color:var(--text-muted)">${c.ph}</div></div></div></td><td style="max-width:150px">${its}</td><td style="font-size:9px;white-space:nowrap">${fd(r.items[0]?.sta||r.cr)}<br>${fd(r.items[0]?.end||'')}</td><td style="font-size:11px">${costD}</td><td><span class="tag ${r.st==='act'?'tag-warn':r.st==='ovr'?'tag-err':'tag-ok'}">${stTxt}</span></td><td><div style="display:flex;gap:3px">${r.st!=='com'&&r.items.some(x=>!x.ret)?r.items.filter(x=>!x.ret).map(x=>{const t=D.tools.find(z=>z.id===x.id2);return t?`<button class="btn btn-sm btn-success" onclick="ret('${r.id}','${x.id}')" title="Вернуть">✓</button>`:''}).join(''):'<span style="font-size:9px;color:var(--text-muted)">✓</span>'}<button class="btn btn-sm btn-secondary" style="color:var(--danger)" onclick="delR('${r.id}')">🗑</button></div></td></tr>`}).join('')}
+function fRentals(f,btn){D.filters.r=f;btn.parentElement.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');rRentals()}
+
+/* ===== RETURN & CALC ===== */
+function ret(rid,xid){const r=D.rentals.find(x=>x.id===rid);const x=r?.items.find(z=>z.id===xid);if(!r||!x)return;const t=D.tools.find(z=>z.id===x.id2);const c=D.clients.find(z=>z.id===r.cid);const now=new Date().toISOString();x.ret=now;const h=(new Date(now)-new Date(x.sta))/36e5;const d=cDays(h);const cost=t&&t.p>0?d*t.p:0;x.tot=x.free?0:cost;t.st='av';r.tot=r.items.reduce((s,z)=>s+z.tot,0);const allR=r.items.every(z=>z.ret);r.st=allR?'com':(r.items.some(z=>!z.ret&&new Date(z.end)<new Date())?'ovr':'act');const dInfo=d===1?'1 день':d<5?`${d} дня`:`${d} дней`;D.acts.unshift({id:gid(),tx:`<strong>${c.n}</strong> вернул <strong>${t.n}</strong>. ${h.toFixed(1)}ч → ${dInfo} → <strong>${cost.toLocaleString('ru')} ₽</strong>`,tm:Date.now(),t:'v'});if(D.acts.length>50)D.acts.length=50;save();render(curPage());toast(`${t.n} возвращён: ${dInfo} → ${cost.toLocaleString('ru')} ₽`,'ok')}
+function delR(id){conf('Удалить аренду?','Данные будут утеряны.',()=>{const r=D.rentals.find(x=>x.id===id);if(r)r.items.forEach(x=>{const t=D.tools.find(z=>z.id===x.id2);if(t&&r.st!=='com')t.st='av'});D.rentals=D.rentals.filter(x=>x.id!==id);save();render(curPage());toast('Удалено','info')},'🗑')}
+
+/* ===== CONTRACTS ===== */
+function rConts(){const q=(document.getElementById('sCont')?.value||'').toLowerCase();let list=D.rentals.filter(r=>{const c=D.clients.find(z=>z.id===r.cid);return c&&(c.n.toLowerCase().includes(q)||r.id.includes(q))}).sort((a,b)=>new Date(b.cr)-new Date(a.cr));const el=document.getElementById('lContracts');if(!list.length){el.innerHTML=`<div class="empty">📄 Нет аренд для договора</div>`;return}el.innerHTML=list.map(r=>{const c=D.clients.find(z=>z.id===r.cid);if(!c)return'';const st=r.st==='com'?'<span class="tag tag-ok">Закрыт</span>':r.st==='ovr'?'<span class="tag tag-err">Просрочен</span>':'<span class="tag tag-warn">Активен</span>';return `<div class="ci"><div class="c-icon">📄</div><div class="c-info"><div class="c-title">Договор #${r.id.slice(-6).toUpperCase()} ${st}</div><div class="c-sub">${c.n} — ${c.ph}</div><div class="c-sub">${fdt(r.cr)}</div></div><button class="btn btn-sm btn-print" onclick="viewCont('${r.id}')">🖨 Печать</button></div>`}).join('')}
+
+function viewCont(rid){
+    const r=D.rentals.find(x=>x.id===rid);if(!r)return;const c=D.clients.find(z=>z.id===r.cid);
+    const num=r.id.slice(-6).toUpperCase();const today=new Date();
+    const day=String(today.getDate()).padStart(2,'0');
+    const month=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'][today.getMonth()];
+    const time=today.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    
+    const fio=c?c.n:'___________________________________________________________________';
+    const ps=c?.ps||'______', pn=c?.pn||'______________', pi=c?.pi||'_______________________________________________', addr='_____________________________________________________________________';
+    
+    // Автозаполнение инструментов
+    let toolsBlock=r.items.map((x,i)=>{
+        const t=D.tools.find(z=>z.id===x.id2);if(!t)return'';
+        const dep=x.free?'Бесплатно':`${t.dep?t.dep:(t.p?t.p*7:'__________')} ₽`;
+        const period=`с ${fd(x.sta)} по ${fd(x.end)}`;
+        return `<div style="margin-bottom:8px;padding:6px 0;border-bottom:1px dashed #ccc">
+            <p><strong>Инструмент ${i+1}:</strong> <span class="fld">${t.n}</span></p>
+            <p style="margin-left:20px">серийный номер: <span class="fld">${t.inv||'_____________________'}</span></p>
+            <p style="margin-left:20px">наименование: <span class="fld">${t.d||'_________________________________'}</span></p>
+            <p style="margin-left:20px">на срок: <span class="fld">${period}</span>, залог в сумме: <span class="fld">${dep}</span></p>
+        </div>`;
+    }).join('');
+
+    const phoneFooter=c?.ph||'______________________';
+
+    const html=`<div class="contract-preview" id="printCont">
+        <h2 style="margin-bottom:12px;text-align:center;font-size:16px;font-weight:bold">Договор аренды/проката электро- и бензоинструмента</h2>
+        <p style="margin-bottom:6px">«<span class="fld" style="min-width:25px;border-bottom:1px solid #000">&nbsp;${day}&nbsp;</span>» <span class="fld" style="min-width:90px;border-bottom:1px solid #000">&nbsp;${month}&nbsp;</span> 2026 г.</p>
+        <p style="margin-bottom:8px">Время местное <span class="fld" style="min-width:50px;border-bottom:1px solid #000">&nbsp;${time}&nbsp;</span> г. Петропавловск-Камчатский</p>
+        <p style="margin-bottom:6px">Макаренко Максим Анатольевич, именуемый в дальнейшем «Арендодатель» и Ф.И.О <span class="fld" style="min-width:200px;border-bottom:1px solid #000">&nbsp;${fio}</span></p>
+        <p style="margin-bottom:6px">паспорт: серия <span class="fld" style="min-width:40px;border-bottom:1px solid #000">&nbsp;${ps}&nbsp;</span> № <span class="fld" style="min-width:60px;border-bottom:1px solid #000">&nbsp;${pn}&nbsp;</span>. кем выдан <span class="fld" style="min-width:180px;border-bottom:1px solid #000">&nbsp;${pi}</span></p>
+        <p style="margin-bottom:6px">тел. <span class="fld" style="min-width:150px;border-bottom:1px solid #000">&nbsp;</span></p>
+        <p style="margin-bottom:10px">зарегистрирован по адресу <span class="fld" style="min-width:200px;border-bottom:1px solid #000">&nbsp;${addr}</span>, именуемый в дальнейшем «Арендатор», заключили договор аренды электро- и бензоинструмента</p>
+        <div style="margin:10px 0">${toolsBlock}</div>
+        
+        <h3 style="margin:10px 0 6px;font-size:13px">1.Сдача и приёмка арендуемого электроинструмента</h3>
+        <p style="margin-bottom:6px">Получив в аренду инструмент, арендатор принимает на себя ответственность за бережное использование инструмента и несёт полную ответственность за порчу арендуемого инструмента. Арендатор, беря в аренду инструмент, проверяет на наличие всех комплектующих и исправности инструмента, а так же обращает внимание на внешний вид. После того, как арендатор попользовался арендуемым инструментом, то возврат происходит в таком же порядке(проверка на исправность, наличие комплектующих, внешний вид).</p>
+        <p style="margin-bottom:6px">Если арендатор не успевает вернуть арендованный инструмент в срок, указанный в данном договоре, то он должен позвонить по телефону <span class="fld" style="min-width:120px;border-bottom:1px solid #000">&nbsp;</span>.</p>
+        <p style="margin-bottom:6px">Минимальное время проката инструмента при почасовой оплате составляет три часа.</p>
+        
+        <h3 style="margin:10px 0 6px;font-size:13px">2.Порча электроинструмента</h3>
+        <p style="margin-bottom:6px">В случае выхода из строя арендуемого инструмента и при несогласии арендатора брать на себя ответственность за поломку, арендуемый инструмент сдается в гарантийную мастерскую на проверку.</p>
+        <p style="margin-bottom:6px">Гарантийная мастерская выдаёт акт, в котором написано, по чьей вине вышел из строя данный инструмент: завода изготовителя либо арендатора. Если поломка произошла по вине арендатора, то инструмент ремонтируется за его счет путем вычитания суммы ремонта из залоговой суммы. В случае нехватки залоговой суммы на ремонт арендатор возмещает расходы из своих денежных средств. Если данное оборудование не подлежит ремонту, то согласно договору он возмещает полную стоимость инструмента, взятого в аренду, а оставленный залог арендатора входит в сумму возмещения.</p>
+        <p style="margin-bottom:6px">Если поломка инструмента произошла по вине завода-изготовителя, то обязанность по ремонту испорченного инструмента полностью возлагается на арендодателя.</p>
+        
+        <h3 style="margin:10px 0 6px;font-size:13px">3.Правила обращения с арендованным электроинструментом</h3>
+        <p style="margin-bottom:6px">После использования арендуемого инструмента арендатор обязательно должен его протереть и убрать всю рабочую грязь, в противном случае штраф за возврат инструмента в грязном виде составляет 20% от стоимости залоговой суммы, который вычитается из залоговой суммы.</p>
+        
+        <h3 style="margin:10px 0 6px;font-size:13px">4. Дополнительные условия</h3>
+        <p style="margin-bottom:6px">Если при приёмке инструмента отсутствуют претензии, указанные в п.п.1, 2, 3 данного договора, то залоговая сумма возвращается в полном объёме арендатору.</p>
+        
+        <h3 style="margin:10px 0 6px;font-size:13px">5.Решение спорных вопросов</h3>
+        <p style="margin-bottom:6px">Все разногласия могут решаться мировым соглашением либо в судебном порядке. Подписав данный договор, арендатор подтверждает и даёт согласие на то, что он ознакомлен с условиями договора и получил инструктаж по использованию данного инструмента, и правила по технике безопасности использования, взятого в аренду инструмента.</p>
+        
+        <div style="display:flex;justify-content:space-between;margin-top:25px;gap:20px">
+            <div style="flex:1"><p>Арендодатель ________________________________/______________/</p><p style="margin-top:5px">тел. ( 89004361907 )</p></div>
+            <div style="flex:1"><p>Арендатор ________________________________/______________/</p><p style="margin-top:5px">тел. ( <span class="fld" style="min-width:120px;border-bottom:1px solid #000">${phoneFooter}</span> )</p></div>
+        </div>
+    </div>`;
+    
+    document.getElementById('mCnt').innerHTML=`<div class="m-head"><div class="m-title">📄 Договор № ${num}</div><div style="display:flex;gap:8px"><button class="btn btn-sm btn-print" onclick="printC()">🖨 Печать</button><button class="m-close" onclick="closeModal()">✕</button></div></div><div style="padding:0;max-height:85vh;overflow-y:auto;background:#eee">${html}</div>`;
+    document.getElementById('mOv').classList.add('active')
+}
+function printC(){const el=document.getElementById('printCont');if(!el)return;const w=window.open('','_blank','width=800,height=900');if(!w){toast('Разрешите всплывающие окна','err');return}w.document.write(`<!DOCTYPE html><html><head><title>Договор аренды</title><style>
+    @page{margin:15mm;size:A4}
+    body{font-family:'Times New Roman',serif;font-size:14px;line-height:1.4;color:#000;padding:20px}
+    h2{margin-bottom:10px}h3{margin:8px 0 4px;font-size:13px}
+    p{margin-bottom:4px}.fld{border-bottom:1px solid #000;padding:0 2px;display:inline-block;min-width:30px}
+</style></head><body>${el.innerHTML}</body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print()},600)}
+
+/* ===== CLIENTS ===== */
+function rClients(){const q=(document.getElementById('sClient')?.value||'').toLowerCase();const list=D.clients.filter(c=>c.n.toLowerCase().includes(q)||c.ph.includes(q)||(c.ps||'').includes(q));const tb=document.getElementById('tClients');if(!list.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty">👤 Нет клиентов</div></td></tr>`;return}tb.innerHTML=list.map(c=>{const tot=D.rentals.filter(r=>r.cid===c.id).length;const act=D.rentals.filter(r=>r.cid===c.id&&r.st!=='com').length;const p=c.ps&&c.pn?`🪪 <span class="sn">${c.ps} ${c.pn}</span>`:'<span style="color:var(--text-muted);font-size:9px">—</span>';return `<tr><td><div style="display:flex;align-items:center;gap:6px"><div class="avatar">${c.n.charAt(0)}</div><div style="font-weight:600;color:var(--text)">${c.n}</div></div></td><td>${p}</td><td>${c.ph}</td><td style="color:var(--text-secondary)">${c.em||'—'}</td><td><span class="sn">${tot}</span> <span class="sn" style="color:${act?'var(--warning)':'var(--success)'}">${act}</span></td><td><div style="display:flex;gap:4px"><button class="btn btn-sm btn-secondary" onclick="openClientModal('${c.id}')">✏️</button><button class="btn btn-sm btn-secondary" style="color:var(--danger)" onclick="delC('${c.id}')">🗑</button></div></td></tr>`}).join('')}
+function openClientModal(eid){const c=eid?D.clients.find(x=>x.id===eid):null;document.getElementById('mCnt').innerHTML=`<div class="m-head"><div class="m-title">${c?'✏️ Редактировать':'➕ Клиент'}</div><button class="m-close" onclick="closeModal()">✕</button></div><div class="m-body"><div class="fg"><label class="fl">ФИО *</label><input class="fi" id="cN" value="${c?c.n:''}"></div><div class="frow"><div class="fg"><label class="fl">Телефон *</label><input class="fi" id="cPh" value="${c?c.ph:''}"></div><div class="fg"><label class="fl">Email</label><input class="fi" id="cEm" value="${c?c.em||'':''}"></div></div><div class="fg"><label class="fl">🪪 Паспорт (серия)</label><input class="fi" id="cPs" value="${c?.ps||''}" maxlength="4"></div><div class="frow"><div class="fg"><label class="fl">Номер</label><input class="fi" id="cPn" value="${c?.pn||''}" maxlength="6"></div><div class="fg"><label class="fl">Кем выдан</label><input class="fi" id="cPi" value="${c?.pi||''}"></div></div></div><div class="m-foot"><div></div><div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="closeModal()">Отмена</button><button class="btn btn-primary" onclick="saveC('${eid||''}')">${c?'Сохранить':'Добавить'}</button></div></div>`;document.getElementById('mOv').classList.add('active')}
+function saveC(eid){const n=document.getElementById('cN').value.trim(),ph=document.getElementById('cPh').value.trim(),em=document.getElementById('cEm').value.trim(),ps=document.getElementById('cPs').value.trim(),pn=document.getElementById('cPn').value.trim(),pi=document.getElementById('cPi').value.trim();if(!n||!ph)return toast('Заполните ФИО и телефон','err');if(eid){const c=D.clients.find(x=>x.id===eid);if(c)Object.assign(c,{n,ph,em,ps,pn,pi})}else{D.clients.push({id:gid(),n,ph,em,ps,pn,pi})}save();closeModal();rClients();toast('Сохранено','ok')}
+function delC(id){if(D.rentals.some(r=>r.cid===id&&r.st!=='com'))return toast('Есть активные аренды','err');conf('Удалить клиента?','Данные будут утеряны.',()=>{D.clients=D.clients.filter(x=>x.id!==id);save();rClients();toast('Удалено','info')},'🗑')}
+
+/* ===== MODALS: TOOLS & RENTALS ===== */
+function openToolModal(eid){const t=eid?D.tools.find(x=>x.id===eid):null;document.getElementById('mCnt').innerHTML=`<div class="m-head"><div class="m-title">${t?'✏️ Редактировать':'➕ Инструмент'}</div><button class="m-close" onclick="closeModal()">✕</button></div><div class="m-body"><div class="fg"><label class="fl">Название *</label><input class="fi" id="tN" value="${t?t.n:''}"></div><div class="frow"><div class="fg"><label class="fl">Категория</label><select class="fs" id="tCat">${Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${t&&t.cat===k?'selected':''}>${v.i} ${v.n}</option>`).join('')}</select></div><div class="fg"><label class="fl">Цена/день (₽)</label><input type="number" class="fi" id="tP" value="${t&&t.p!==undefined?t.p:0}" min="0"></div></div><div class="frow"><div class="fg"><label class="fl">Залог (₽)</label><input type="number" class="fi" id="tDep" value="${t&&t.dep!==undefined?t.dep:0}" min="0"></div><div class="fg"><label class="fl">Иконка</label><input class="fi" id="tI" value="${t?t.i:'🔧'}" maxlength="2"></div></div><div class="fg"><label class="fl">Серийный номер</label><input class="fi" id="tInv" value="${t?t.inv||'':''}"></div><div class="fg"><label class="fl">Описание</label><textarea class="ft" id="tD">${t?t.d||'':''}</textarea></div></div><div class="m-foot"><div></div><div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="closeModal()">Отмена</button><button class="btn btn-primary" onclick="saveT('${eid||''}')">${t?'Сохранить':'Добавить'}</button></div></div>`;document.getElementById('mOv').classList.add('active')}
+function saveT(eid){const n=document.getElementById('tN').value.trim(),cat=document.getElementById('tCat').value,p=parseInt(document.getElementById('tP').value)||0,dep=parseInt(document.getElementById('tDep').value)||0,inv=document.getElementById('tInv').value.trim(),i=document.getElementById('tI').value.trim()||'🔧',d=document.getElementById('tD').value.trim();if(!n)return toast('Введите название','err');if(eid){const t=D.tools.find(x=>x.id===eid);if(t)Object.assign(t,{n,cat,p,dep,inv,i,d})}else{D.tools.push({id:gid(),n,cat,p,dep,inv,i,d,st:'av'})}save();closeModal();render(curPage());toast('Сохранено','ok')}
+function delT(id){const t=D.tools.find(x=>x.id===id);if(t&&(t.st==='rent'||t.st==='ovr'))return toast('Нельзя удалить в аренде','err');conf('Удалить?',`"${t?.n}" будет удалён.`,()=>{D.tools=D.tools.filter(x=>x.id!==id);save();rTools();upC();toast('Удалено','info')},'🗑')}
+
+function openRentModal(preId){
+    const now=new Date(),nd=new Date();nd.setDate(nd.getDate()+7);
+    const td=now.toISOString().split('T')[0],ed=nd.toISOString().split('T')[0],tm=now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('mCnt').innerHTML=`<div class="m-head"><div class="m-title">📋 Аренда</div><button class="m-close" onclick="closeModal()">✕</button></div><div class="m-body"><div class="fg"><label class="fl">Клиент *</label><select class="fs" id="rC">${D.clients.length?`<option value="">Выберите...</option>${D.clients.map(c=>`<option value="${c.id}">${c.n} ${c.ph?'— '+c.ph:''}</option>`).join('')}`:'<option value="">Сначала добавьте клиентов</option>'}</select></div><div id="riBox"></div><button class="btn btn-secondary" style="width:100%;margin-bottom:10px" onclick="addRI()">➕ Добавить инструмент</button><label style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;cursor:pointer"><input type="checkbox" id="rFree"><span style="font-size:12px">🎁 Бесплатная аренда</span></label><div style="margin-top:10px;padding:8px;background:var(--bg-input);border-radius:6px;font-size:12px;color:var(--text-secondary)">💰 Стоимость рассчитается при возврате (30 мин бесплатно)</div></div><div class="m-foot"><div style="font-size:11px;color:var(--text-muted)"><span id="rCnt">0</span> поз.</div><div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="closeModal()">Отмена</button><button class="btn btn-primary" id="rSave" onclick="saveRent()" disabled>Создать</button></div></div>`;
+    document.getElementById('mOv').classList.add('active');
+    window._rItems=[];
+    if(preId)window._rItems.push({id:preId,sta:td,end:ed,stime:tm,etime:tm,ret:null,tot:0,free:false});
+    else addRI();
+    rebuildRI()
+}
+function addRI(){const t=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});const nd=new Date();nd.setDate(nd.getDate()+7);window._rItems.push({id:'',sta:new Date().toISOString().split('T')[0],end:nd.toISOString().split('T')[0],stime:t,etime:t,ret:null,tot:0,free:false});rebuildRI()}
+function removeRI(i){if(window._rItems.length<=1)return toast('Нужен 1 инструмент','warn');window._rItems.splice(i,1);rebuildRI()}
+function rebuildRI(){document.getElementById('riBox').innerHTML=window._rItems.map((x,i)=>{const t=D.tools.find(z=>z.id===x.id);const av=D.tools.filter(z=>z.st==='av'||z.id===x.id);return `<div style="background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;position:relative"><button style="position:absolute;top:6px;right:6px;background:var(--danger-bg);color:var(--danger);border:none;width:22px;height:22px;border-radius:4px;cursor:pointer;font-size:10px" onclick="removeRI(${i})">✕</button><div class="fg"><select class="fs ri-tool" data-i="${i}" onchange="onRIC(${i})"><option value="">Инструмент...</option>${av.map(z=>`<option value="${z.id}" ${z.id===x.id?'selected':''}>${z.i} ${z.n} [${z.inv||'Б/Н'}]</option>`).join('')}</select></div><div class="frow"><div class="fg"><label class="fl" style="font-size:9px">Начало</label><input type="date" class="fi ri-sta" data-i="${i}" value="${x.sta}"></div><div class="fg"><label class="fl" style="font-size:9px">Время</label><input type="time" class="fi ri-stime" data-i="${i}" value="${x.stime}"></div></div><div class="frow"><div class="fg"><label class="fl" style="font-size:9px">Возврат</label><input type="date" class="fi ri-end" data-i="${i}" value="${x.end}"></div><div class="fg"><label class="fl" style="font-size:9px">Время</label><input type="time" class="fi ri-etime" data-i="${i}" value="${x.etime}"></div></div></div>`}).join('');document.querySelectorAll('.ri-sta,.ri-end,.ri-stime,.ri-etime').forEach(el=>el.addEventListener('change',e=>{const i=parseInt(e.target.dataset.i);if(e.target.classList.contains('ri-sta'))window._rItems[i].sta=e.target.value;else if(e.target.classList.contains('ri-end'))window._rItems[i].end=e.target.value;else if(e.target.classList.contains('ri-stime'))window._rItems[i].stime=e.target.value;else window._rItems[i].etime=e.target.value;checkRentValid()}))}
+function onRIC(i){const s=document.querySelector(`.ri-tool[data-i="${i}"]`);window._rItems[i].id=s.value;checkRentValid()}
+function checkRentValid(){const b=document.getElementById('rSave');let v=true;window._rItems.forEach(x=>{if(!x.id||!x.sta||!x.stime||!x.end||!x.etime)v=false;else if(new Date(x.end+'T'+x.etime)<=new Date(x.sta+'T'+x.stime))v=false});document.getElementById('rCnt').textContent=window._rItems.length;b.disabled=!v}
+function saveRent(){const cid=document.getElementById('rC').value;if(!cid)return toast('Выберите клиента','err');const free=document.getElementById('rFree').checked;const items=[];window._rItems.forEach(x=>{if(!x.id)return;const t=D.tools.find(z=>z.id===x.id);if(!t)return;const s=x.sta+'T'+x.stime,e=x.end+'T'+x.etime;if(new Date(e)<=new Date(s))return;items.push({id:gid(),id2:x.id,sta:s,end:e,ret:null,tot:0,free:free||x.free});t.st='rent'});if(!items.length)return toast('Заполните данные','err');D.rentals.push({id:gid(),cid,items,tot:0,st:'act',cr:new Date().toISOString()});const c=D.clients.find(z=>z.id===cid);D.acts.unshift({id:gid(),tx:`<strong>${c?.n}</strong> арендовал ${items.map(x=>{const t=D.tools.find(z=>z.id===x.id2);return t?`<strong>${t.n}</strong>`:''}).join(', ')}`,tm:Date.now(),t:'r'});if(D.acts.length>50)D.acts.length=50;save();closeModal();render(curPage());toast(`Создано: ${items.length} поз.`,'ok')}
+
+/* ===== ANALYTICS & SETTINGS ===== */
+function rAnal(){const cr=D.rentals.filter(r=>r.st==='com').reduce((s,r)=>s+r.tot,0),ar=D.rentals.filter(r=>r.st!=='com').reduce((s,r)=>s+r.tot,0);document.getElementById('aStats').innerHTML=`<div class="st"><div class="st-icon">💰</div><div class="st-val" style="color:var(--info)">${cr.toLocaleString('ru')} ₽</div><div class="st-lab">Закрыто</div></div><div class="st"><div class="st-icon">⏳</div><div class="st-val" style="color:var(--warning)">${ar.toLocaleString('ru')} ₽</div><div class="st-lab">Ожидает возврата</div></div>`;document.getElementById('aPop').innerHTML='<div class="empty">Данные появятся после закрытия аренд</div>';document.getElementById('aCat').innerHTML='<div class="empty">Данные появятся после закрытия аренд</div>'}
+function openSettings(){document.getElementById('cCnt').innerHTML=`<div class="m-head"><div class="m-title">⚙️ Резерв</div><button class="m-close" onclick="closeConfirm()">✕</button></div><div class="m-body"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary" onclick="expD()" style="flex:1">📥 Экспорт</button><label class="btn btn-secondary" style="flex:1;text-align:center;cursor:pointer">📤 Импорт<input type="file" accept=".json" style="display:none" onchange="impD(this)"></label></div><hr style="border-color:var(--border);margin:12px 0"><button class="btn btn-danger" onclick="clearAll()" style="width:100%">🗑 Очистить всё</button></div>`;document.getElementById('cOv').classList.add('active')}
+function expD(){const b=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`toolrent_${new Date().toISOString().slice(0,10)}.json`;a.click();closeConfirm();toast('Сохранено','ok')}
+function impD(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d.tools&&!d.rentals)throw 0;conf('Загрузить?','Текущие данные будут заменены.',()=>{D={...D,...d};save();closeConfirm();render(curPage());toast('Восстановлено','ok')})}catch{toast('Ошибка формата','err')}};r.readAsText(f)}
+function clearAll(){conf('Очистить ВСЁ?','Данные удалятся навсегда.',()=>{D={tools:[],clients:[],rentals:[],acts:[],filters:{t:'all',r:'all'}};save();closeConfirm();render(curPage());toast('Очищено','info')},'⚠️')}
+
+document.addEventListener('DOMContentLoaded',()=>{load();checkOv();render(curPage());document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeConfirm()}})});
+</script>
+</body>
+</html>
+
